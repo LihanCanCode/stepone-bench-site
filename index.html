@@ -195,8 +195,8 @@ road_b: drive to the mill dock (7 minutes)</code></pre>
     </figure>
   </div>
   <figure class="figure narrow">
-    <img src="assets/fig_link.png" alt="Probe accuracy by depth at layer 20. Trap versus side is near chance for all four models. Trap versus patient is above chance only at depth 1." loading="lazy">
-    <figcaption>The link probe. Every variant has one closed road; only its place changes. Whether it lies on the tempting route or beside it is not readable in any model.</figcaption>
+    <img src="assets/fig_link.png" alt="Probe accuracy by depth at layer 20. Trap versus side is only slightly above chance for all four models. Trap versus patient is above chance only at depth 1." loading="lazy">
+    <figcaption>The link probe. Every variant has one closed road; only its place changes. Whether it lies on the tempting route or beside it is at most weakly readable (0.56&ndash;0.59 on fresh seeds), well below what the probe reads at depth 1.</figcaption>
   </figure>
 </section>
 
@@ -228,7 +228,7 @@ road_b: drive to the mill dock (7 minutes)</code></pre>
     <dt>Length and numbers</dt><dd>Padding every prompt to the same length, and comparing within one gap between totals, separates depth from prompt length and from number comparison.</dd>
     <dt>Shortcut-free probes</dt><dd>The link probe removes a shortcut that an ordinary twin probe allows.</dd>
     <dt>Real nulls</dt><dd>Shuffled labels for probes, and ten random directions for steering.</dd>
-    <dt>Preregistered</dt><dd>Six claims with pass rules were fixed in writing before the fresh-seed runs. The results on this page come from development seeds; the confirmatory runs are in progress.</dd>
+    <dt>Preregistered</dt><dd>Six claims with pass rules were fixed in writing, then tested once on fresh seeds. Three passed: the closed road is attended to but not linked, a one-hop better-option direction is causal, and the Intern decline is number comparison rather than depth. The floor and the flat near rung held their intervals but did not survive the multiple-testing correction. The claim that route membership is unreadable failed: it is weakly readable. Figures on this page come from development seeds.</dd>
   </dl>
 </section>
 
