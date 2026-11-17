@@ -1,0 +1,240 @@
+/* StepOne-Bench site. Colours carry meaning, as in the paper's figures:
+   orange = tempting (lure) route, blue = patient route, red = closed road, aqua = used. */
+:root {
+  --asphalt: #1b2a49;
+  --asphalt-2: #24365c;
+  --paper: #eef2f5;
+  --paper-2: #e2e8ee;
+  --ink: #17202e;
+  --ink-2: #4a5568;
+  --line: #c4ced8;
+  --lure: #eb6834;
+  --patient: #2a78d6;
+  --closed: #d23c3c;
+  --use: #1baf7a;
+  --white: #fbfcfd;
+
+  --font: "Overpass", "Segoe UI", sans-serif;
+  --mono: "Overpass Mono", ui-monospace, monospace;
+  --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --text-hero: clamp(2.4rem, 1.2rem + 5vw, 5.2rem);
+  --text-h2: clamp(1.6rem, 1.2rem + 1.6vw, 2.4rem);
+  --measure: 68ch;
+  --gutter: clamp(1rem, 4vw, 3rem);
+  --route-x: clamp(1rem, 6vw, 5.5rem);
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  color: var(--ink);
+  background-color: var(--paper);
+  /* faint contour lines, like a survey map */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='480' viewBox='0 0 480 480'%3E%3Cg fill='none' stroke='%23d5dde5' stroke-width='1'%3E%3Cpath d='M-20 120 C 80 60 160 180 260 110 S 420 60 500 130'/%3E%3Cpath d='M-20 200 C 90 140 170 260 270 190 S 430 140 500 210'/%3E%3Cpath d='M-20 300 C 70 250 180 360 280 290 S 420 250 500 320'/%3E%3Cpath d='M-20 400 C 100 340 160 460 260 390 S 440 340 500 410'/%3E%3C/g%3E%3C/svg%3E");
+}
+img { max-width: 100%; height: auto; display: block; }
+a { color: var(--patient); }
+:focus-visible { outline: 3px solid var(--lure); outline-offset: 3px; border-radius: 4px; }
+
+/* ---------- hero ---------- */
+.hero {
+  position: relative;
+  min-height: 92vh;
+  display: grid;
+  align-items: end;
+  padding: 0 var(--gutter) clamp(3rem, 8vh, 6rem);
+  color: var(--white);
+  background: radial-gradient(120% 90% at 75% 30%, var(--asphalt-2) 0%, var(--asphalt) 60%);
+  overflow: hidden;
+}
+#network { position: absolute; top: 0; left: 0; width: 100%; height: 100%; grid-area: 1 / 1; }
+.hero-text { position: relative; max-width: 46rem; }
+.kicker { margin: 0 0 0.6rem; font-weight: 600; color: #9fb4d6; letter-spacing: 0.02em; }
+.hero h1 {
+  margin: 0;
+  font-size: var(--text-hero);
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+}
+.lede { max-width: 38rem; margin: 1.4rem 0 0; font-size: clamp(1.05rem, 1rem + 0.4vw, 1.3rem); font-weight: 300; color: #d8e1ee; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 2rem; }
+.btn {
+  display: inline-block;
+  padding: 0.75rem 1.3rem;
+  border-radius: 999px;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--asphalt);
+  background: var(--white);
+  transition: transform 160ms var(--ease), background 160ms;
+}
+.btn:hover { transform: translateY(-2px); background: #fff; }
+.btn.ghost { color: var(--white); background: transparent; box-shadow: inset 0 0 0 2px #7e93b6; }
+.btn.ghost:hover { box-shadow: inset 0 0 0 2px var(--white); }
+.legend { display: flex; flex-wrap: wrap; gap: 1.2rem; margin: 2rem 0 0; padding: 0; list-style: none; font-size: 0.9rem; color: #b9c6db; }
+.swatch { display: inline-block; width: 1.6rem; height: 4px; margin-right: 0.5rem; vertical-align: middle; border-radius: 2px; }
+.swatch.lure { background: var(--lure); }
+.swatch.patient { background: var(--patient); }
+.swatch.closed { background: repeating-linear-gradient(90deg, var(--closed) 0 6px, transparent 6px 10px); }
+.hero-caption { position: absolute; right: var(--gutter); bottom: 1.2rem; max-width: 22rem; margin: 0; font-size: 0.82rem; color: #8ea2c3; text-align: right; }
+
+/* ---------- the route: sections are stops on one line ---------- */
+.route { position: relative; padding: clamp(3rem, 8vh, 6rem) var(--gutter) 4rem calc(var(--route-x) + 2.6rem); }
+.route::before {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0;
+  left: var(--route-x);
+  width: 4px;
+  border-radius: 2px;
+  background: linear-gradient(var(--lure), var(--patient) 30%, var(--patient) 80%, var(--use));
+}
+.stop { position: relative; max-width: 64rem; margin: 0 0 clamp(4rem, 10vh, 7rem); }
+.stop::before {
+  content: "";
+  position: absolute;
+  left: calc(-2.6rem - 7px);
+  top: 0.55rem;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 4px solid var(--patient);
+}
+.stop h2 { margin: 0 0 0.8rem; font-size: var(--text-h2); font-weight: 800; line-height: 1.1; letter-spacing: -0.01em; }
+.stop > p, .stop > ul, .stop .note { max-width: var(--measure); }
+.question { font-size: 1.25rem; font-weight: 600; color: var(--asphalt); }
+.note { color: var(--ink-2); font-size: 0.95rem; }
+
+/* ---------- diagrams ---------- */
+.diagram { margin: 1.6rem 0; max-width: 46rem; }
+.diagram svg, .map { width: 100%; height: auto; display: block; }
+.node-box { fill: var(--white); stroke: var(--line); stroke-width: 2; }
+.lure-box { stroke: var(--lure); }
+.patient-box { stroke: var(--patient); }
+.closed-box { stroke: var(--closed); fill: #fbecec; }
+.use-box { stroke: var(--use); fill: #e7f6ef; }
+.svg-label { font: 600 15px var(--font); fill: var(--ink); }
+.svg-small { font: 400 13px var(--font); fill: var(--ink-2); }
+.edge { fill: none; stroke-width: 3; }
+.lure-edge { stroke: var(--lure); }
+.patient-edge { stroke: var(--patient); }
+.edge.dashed { stroke: var(--line); stroke-dasharray: 6 6; }
+
+/* ---------- twin demo ---------- */
+.twin-demo {
+  margin: 1.8rem 0;
+  padding: clamp(1rem, 3vw, 2rem);
+  background: var(--white);
+  border-radius: 18px;
+  box-shadow: 0 1px 0 var(--line), 0 18px 40px -28px rgba(27, 42, 73, 0.45);
+}
+.twin-controls, .rungs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+.tab, .rung {
+  font: 600 0.95rem var(--font);
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  border: 2px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 160ms, border-color 160ms, color 160ms;
+}
+.tab:hover, .rung:hover { border-color: var(--asphalt); }
+.tab[aria-pressed="true"], .rung[aria-pressed="true"] { background: var(--asphalt); border-color: var(--asphalt); color: var(--white); }
+.road { stroke-width: 6; stroke-linecap: round; transition: stroke 300ms, stroke-dasharray 300ms, opacity 300ms; }
+.lure-road { stroke: var(--lure); }
+.patient-road { stroke: var(--patient); }
+.closed-road { stroke: var(--closed); stroke-dasharray: 10 8; }
+.closed-road.is-open { stroke: var(--lure); stroke-dasharray: none; }
+.spur { stroke: var(--line); stroke-width: 4; }
+.spur.is-closed { stroke: var(--closed); stroke-dasharray: 6 5; }
+.place { fill: var(--white); stroke: var(--asphalt); stroke-width: 3; }
+.place.start, .place.goal { fill: var(--asphalt); }
+.lure-text { fill: var(--lure); font-weight: 600; }
+.patient-text { fill: var(--patient); font-weight: 600; }
+.closed-text { fill: var(--closed); font-weight: 600; transition: fill 300ms; }
+.twin-readout p { margin: 0.4rem 0; }
+.twin-models { color: var(--lure); }
+
+/* ---------- model input ---------- */
+.input {
+  margin: 1.2rem 0;
+  max-width: 50rem;
+  padding: 1.2rem 1.4rem;
+  overflow-x: auto;
+  font: 0.86rem/1.55 var(--mono);
+  color: #dfe7f2;
+  background: var(--asphalt);
+  border-radius: 14px;
+}
+.input mark { background: rgba(210, 60, 60, 0.35); color: #fff; border-radius: 3px; padding: 0 0.15rem; }
+
+/* ---------- phases ---------- */
+.phases { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: clamp(1rem, 3vw, 2.5rem); max-width: 60rem; }
+.phase { padding-top: 1rem; border-top: 4px solid var(--patient); }
+.phase:first-child { border-top-color: var(--lure); }
+.phase h3 { margin: 0 0 0.6rem; font-size: 1.45rem; font-weight: 800; }
+.phase h3 span { display: block; font-size: 0.92rem; font-weight: 400; color: var(--ink-2); }
+
+/* ---------- find, link, use ---------- */
+.path-line { stroke: var(--line); stroke-width: 6; stroke-linecap: round; fill: none; }
+.st { stroke-width: 5; fill: var(--white); }
+.st.find { stroke: var(--patient); }
+.st.link { stroke: var(--lure); }
+.st.use { stroke: var(--use); }
+.st-label { font: 800 17px var(--font); fill: var(--ink); }
+.break-dot { fill: var(--closed); }
+.break-mark { stroke: var(--white); stroke-width: 3.5; stroke-linecap: round; fill: none; }
+
+/* ---------- ladder ---------- */
+.ladder { margin: 1.4rem 0 2rem; max-width: 50rem; }
+.rungs { flex-direction: column-reverse; align-items: flex-start; }
+.rung-text { min-height: 6.5rem; }
+.rung-note { margin: 0.4rem 0 0; font-weight: 600; color: var(--asphalt); }
+
+/* ---------- figures ---------- */
+.figure { margin: 1.6rem 0; max-width: 60rem; padding: 0.8rem; background: var(--white); border-radius: 14px; }
+.figure.narrow { max-width: 40rem; }
+.figure figcaption { margin: 0.6rem 0.2rem 0.1rem; font-size: 0.9rem; color: var(--ink-2); }
+.pair { display: grid; grid-template-columns: 1.35fr 1fr; gap: 1.2rem; max-width: 64rem; }
+.findings { padding-left: 1.2rem; }
+.findings li { margin-bottom: 0.7rem; }
+
+/* ---------- live play ---------- */
+.faint { opacity: 0.35; }
+.car { fill: var(--lure); filter: drop-shadow(0 0 6px rgba(235, 104, 52, 0.8)); }
+
+/* ---------- rigour ---------- */
+.checks { display: grid; grid-template-columns: max-content 1fr; gap: 0.7rem 1.6rem; max-width: 56rem; }
+.checks dt { font-weight: 800; }
+.checks dd { margin: 0; color: var(--ink-2); }
+
+/* ---------- takeaway ---------- */
+.takeaway .big { max-width: 34ch; font-size: clamp(1.4rem, 1rem + 1.6vw, 2.2rem); font-weight: 800; line-height: 1.2; color: var(--asphalt); }
+.takeaway::before { border-color: var(--use); }
+
+.footer { padding: 2.5rem var(--gutter); color: #b9c6db; background: var(--asphalt); font-size: 0.92rem; }
+.footer p { margin: 0; max-width: var(--measure); }
+
+/* ---------- small screens ---------- */
+@media (max-width: 760px) {
+  .route { padding-left: calc(var(--route-x) + 1.8rem); }
+  .stop::before { left: calc(-1.8rem - 7px); }
+  .pair { grid-template-columns: 1fr; }
+  .checks { grid-template-columns: 1fr; }
+  .checks dd { margin-bottom: 0.6rem; }
+  .hero-caption { position: static; text-align: left; margin-top: 1.5rem; }
+  #network { opacity: 0.4; }
+  .hero { align-items: end; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition-duration: 0ms !important; animation-duration: 0ms !important; }
+}

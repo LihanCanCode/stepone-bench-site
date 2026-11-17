@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StepOne-Bench: how far ahead do fast decision models look?</title>
+<meta name="description" content="A study of where fast decision models stop following a fact a few steps away, from behaviour down to the model's internals.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@300;400;600;800&family=Overpass+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="hero" id="top">
+  <canvas id="network" aria-hidden="true"></canvas>
+  <div class="hero-text">
+    <p class="kicker">StepOne-Bench</p>
+    <h1>How far ahead do fast decision models look?</h1>
+    <p class="lede">Decision models answer in one call, with no written reasoning. We trace the exact point where they stop following a fact a few steps away, from what they choose down to what happens inside them.</p>
+    <div class="hero-actions">
+      <a class="btn" href="#twins">See the idea</a>
+      <a class="btn ghost" href="#findings">See the findings</a>
+    </div>
+    <ul class="legend" aria-label="Map legend">
+      <li><span class="swatch lure"></span>tempting route</li>
+      <li><span class="swatch patient"></span>patient route</li>
+      <li><span class="swatch closed"></span>closed road</li>
+    </ul>
+  </div>
+  <p class="hero-caption">The animation is the main finding: the car takes the cheap road, meets the closed one, and goes back and forth.</p>
+</header>
+
+<main class="route">
+
+<section class="stop" id="problem">
+  <h2>The problem</h2>
+  <p>Fast decision models return one probability per option. Agents use them to pick their next action, because they are quick and calibrated. But many choices depend on what happens several steps later. An option can look best now and block a better outcome down the road.</p>
+  <figure class="diagram">
+    <svg viewBox="0 0 640 220" role="img" aria-label="A choice between a tempting option worth 5 points now that is blocked later, and a patient option worth 2 points now that leads to 20 points later">
+      <rect x="20" y="88" width="130" height="44" rx="10" class="node-box"/>
+      <text x="85" y="115" class="svg-label" text-anchor="middle">decision now</text>
+      <path d="M150 110 C 210 110, 210 50, 270 50" class="edge lure-edge"/>
+      <path d="M150 110 C 210 110, 210 170, 270 170" class="edge patient-edge"/>
+      <rect x="270" y="28" width="150" height="44" rx="10" class="node-box lure-box"/>
+      <text x="345" y="55" class="svg-label" text-anchor="middle">tempting: +5 now</text>
+      <rect x="270" y="148" width="150" height="44" rx="10" class="node-box patient-box"/>
+      <text x="345" y="175" class="svg-label" text-anchor="middle">patient: +2 now</text>
+      <path d="M420 50 H 470" class="edge dashed"/>
+      <path d="M420 170 H 470" class="edge dashed"/>
+      <rect x="470" y="28" width="150" height="44" rx="10" class="node-box closed-box"/>
+      <text x="545" y="55" class="svg-label" text-anchor="middle">blocked 3 steps on</text>
+      <rect x="470" y="148" width="150" height="44" rx="10" class="node-box use-box"/>
+      <text x="545" y="175" class="svg-label" text-anchor="middle">+20 three steps on</text>
+    </svg>
+  </figure>
+  <p class="question">Does the decision still follow that distant fact? And if it doesn't, which step inside the model breaks?</p>
+</section>
+
+<section class="stop" id="twins">
+  <h2>Counterfactual twins</h2>
+  <p>Every scenario comes as twins that differ in exactly one fact, far from the first move. If the decision changes between twins, only that fact can explain it. A program certifies every pair: one best move, one changed fact, a flipped answer.</p>
+  <div class="twin-demo">
+    <div class="twin-controls" role="group" aria-label="Choose a twin">
+      <button type="button" class="tab" data-twin="trap" aria-pressed="true">Trap twin</button>
+      <button type="button" class="tab" data-twin="open" aria-pressed="false">Open twin</button>
+      <button type="button" class="tab" data-twin="decoy" aria-pressed="false">Decoy twin</button>
+    </div>
+    <svg class="map" viewBox="-30 0 670 260" role="img" aria-labelledby="twin-desc">
+      <title id="twin-desc">Two routes from start to goal. The tempting route starts with a 4 minute road; the patient route with a 7 minute road.</title>
+      <g class="roads">
+        <line x1="40" y1="130" x2="150" y2="50" class="road lure-road"/>
+        <line x1="150" y1="50" x2="280" y2="50" class="road lure-road"/>
+        <line x1="280" y1="50" x2="410" y2="50" id="decisive" class="road closed-road"/>
+        <line x1="410" y1="50" x2="530" y2="50" class="road lure-road"/>
+        <line x1="530" y1="50" x2="600" y2="130" class="road lure-road"/>
+        <line x1="40" y1="130" x2="150" y2="210" class="road patient-road"/>
+        <line x1="150" y1="210" x2="280" y2="210" class="road patient-road"/>
+        <line x1="280" y1="210" x2="410" y2="210" class="road patient-road"/>
+        <line x1="410" y1="210" x2="530" y2="210" class="road patient-road"/>
+        <line x1="530" y1="210" x2="600" y2="130" class="road patient-road"/>
+        <line x1="280" y1="50" x2="280" y2="10" id="deadend" class="road spur"/>
+      </g>
+      <g class="places">
+        <circle cx="40" cy="130" r="11" class="place start"/><text x="40" y="164" class="svg-small" text-anchor="middle">start</text>
+        <circle cx="600" cy="130" r="11" class="place goal"/><text x="600" y="164" class="svg-small" text-anchor="middle">goal</text>
+        <circle cx="150" cy="50" r="8" class="place"/><circle cx="280" cy="50" r="8" class="place"/><circle cx="410" cy="50" r="8" class="place"/><circle cx="530" cy="50" r="8" class="place"/>
+        <circle cx="150" cy="210" r="8" class="place"/><circle cx="280" cy="210" r="8" class="place"/><circle cx="410" cy="210" r="8" class="place"/><circle cx="530" cy="210" r="8" class="place"/>
+        <circle cx="280" cy="10" r="6" class="place"/>
+      </g>
+      <text x="62" y="74" class="svg-small lure-text" text-anchor="end">4 min</text>
+      <text x="62" y="196" class="svg-small patient-text" text-anchor="end">7 min</text>
+      <text x="345" y="40" id="decisive-label" class="svg-small closed-text" text-anchor="middle">closed</text>
+    </svg>
+    <div class="twin-readout" aria-live="polite">
+      <p id="twin-what">One road two segments down the tempting route is closed.</p>
+      <p id="twin-best"><strong>Best first move:</strong> the patient road (28 min against 36).</p>
+      <p class="twin-models"><strong>What the models choose:</strong> the 4-minute road, in every twin.</p>
+    </div>
+  </div>
+  <p class="note">Depth is how far down the route the deciding road sits, from 1 to 6 segments. A model scores <em>both-right</em> only if it gets the trap and the open twin right. Always taking the cheap road scores 0; guessing scores 0.25.</p>
+</section>
+
+<section class="stop" id="input">
+  <h2>What a model reads</h2>
+  <p>One request: a state, a question and two options. The model returns a probability for each option. This is the trap twin above, word for word as our generator writes it.</p>
+<pre class="input"><code>Roads between places. Every road can be driven in either direction. Times are in minutes.
+- the east yard to the mill cross: 4 minutes
+- the hill field to the upper cross: 1 minute
+- the east cross to the upper cross: 2 minutes
+- the forest well to the old hall: 6 minutes
+- the east yard to the upper row: 11 minutes
+- the mill cross to the mill dock: 7 minutes
+- <mark>the east cross to the upper row: closed</mark>
+- the east tower to the upper row: 2 minutes
+  ...
+Goal: reach the hill field in the least total time.
+You are at the mill cross.
+
+Which road should be taken next?
+  road_a: drive to the east yard (4 minutes)
+  road_b: drive to the mill dock (7 minutes)</code></pre>
+</section>
+
+<section class="stop" id="phases">
+  <h2>Two questions, two phases</h2>
+  <div class="phases">
+    <article class="phase">
+      <h3>How far? <span>Phase 1, behaviour</span></h3>
+      <p>Twins in three task types (permit chains, block stacking, budget puzzles), asked of five deployed decision models through their APIs.</p>
+      <p>Sensitivity to the deciding fact fell to about zero within a few steps, and the immediately rewarding option took over.</p>
+    </article>
+    <article class="phase">
+      <h3>Why? <span>Phase 2, inside the model</span></h3>
+      <p>Open-weight models we can open up: Laya (0.4B), Intern-Decision (0.8B, 2B, 4B) and Minitaur (8B). Graph routing as the main task, plus block stacking and permit chains.</p>
+      <p>Hints, probes, attention, attribution, steering, patching and live play, each aimed at one step of the path below.</p>
+    </article>
+  </div>
+</section>
+
+<section class="stop" id="path">
+  <h2>Three steps from a fact to a choice</h2>
+  <p>To act on a closed road far down a route, a model has to do three things. Each one can be where it breaks, and each predicts a different pattern of results.</p>
+  <figure class="diagram path-diagram">
+    <svg viewBox="0 0 700 170" role="img" aria-label="Find, then link, then use">
+      <path d="M40 85 H 660" class="path-line"/>
+      <g class="station"><circle cx="150" cy="85" r="34" class="st find"/><text x="150" y="91" text-anchor="middle" class="st-label">Find</text></g>
+      <g class="station"><circle cx="350" cy="85" r="34" class="st link"/><text x="350" y="91" text-anchor="middle" class="st-label">Link</text></g>
+      <g class="station"><circle cx="550" cy="85" r="34" class="st use"/><text x="550" y="91" text-anchor="middle" class="st-label">Use</text></g>
+      <text x="150" y="148" text-anchor="middle" class="svg-small">the fact reaches the decision</text>
+      <text x="350" y="148" text-anchor="middle" class="svg-small">it is tied to the option it affects</text>
+      <text x="550" y="148" text-anchor="middle" class="svg-small">it outweighs the cheap first road</text>
+      <g class="break-badge"><circle cx="384" cy="54" r="15" class="break-dot"/><path d="M377 47 L 391 61 M391 47 L 377 61" class="break-mark"/></g>
+    </svg>
+  </figure>
+  <p>The cross marks where our results point: the models find the fact but don't link it.</p>
+</section>
+
+<section class="stop" id="findings">
+  <h2>The hint ladder</h2>
+  <p>We write one more piece of the reasoning into the option text, rung by rung. The lowest rung that fixes the choice shows which step was missing.</p>
+  <div class="ladder">
+    <div class="rungs" role="group" aria-label="Choose a rung">
+      <button type="button" class="rung" data-rung="total" aria-pressed="false">Total written in</button>
+      <button type="button" class="rung" data-rung="near" aria-pressed="false">Closed road named</button>
+      <button type="button" class="rung" data-rung="route" aria-pressed="false">Route listed</button>
+      <button type="button" class="rung" data-rung="plain" aria-pressed="true">Plain</button>
+    </div>
+<pre class="input rung-text" aria-live="polite"><code id="rung-code">road_a: drive to the east yard (4 minutes)
+road_b: drive to the mill dock (7 minutes)</code></pre>
+    <p class="rung-note" id="rung-note">The closure sits only in the road list. Every model is at the floor.</p>
+  </div>
+  <figure class="figure">
+    <img src="assets/fig_ladder.png" alt="Four panels of both-right by depth for five models. Plain: all near zero. Route listed: Intern 4B at 0.3 to 0.6, others low. Closed road named: Minitaur flat near 0.77, Intern 4B falling. Total written in: Minitaur near 1, Intern models lower." loading="lazy">
+    <figcaption>Both-right by depth, five open models, graph routing (development seeds, 20–30 scenario pairs per point). Writing the consequence into the option repairs the choice; listing the route helps only Intern 4B.</figcaption>
+  </figure>
+  <ul class="findings">
+    <li><strong>Found, not linked.</strong> Name the closed road inside the option and Minitaur gets both twins right about 77% of the time, at every depth. Distance in the graph costs it nothing once the link is made for it.</li>
+    <li><strong>Linking has two parts.</strong> List the route's roads without their status, and Intern 4B checks them against the road list (0.30–0.60). Minitaur can't, even then.</li>
+    <li><strong>The same pattern elsewhere.</strong> In block stacking and permit chains, every model sits at the floor, and writing the consequence in brings the large models to 1.00.</li>
+  </ul>
+</section>
+
+<section class="stop" id="inside">
+  <h2>Inside the model</h2>
+  <p>We group tokens into prompt lines and ask two questions of each line: does the decision look at it, and does it move the decision? Deleting one line and asking again measures the second.</p>
+  <div class="pair">
+    <figure class="figure">
+      <img src="assets/line_map_minitaur-8b.png" alt="Line by line attention for Minitaur, trap and open twin side by side. Attention is mostly local, with the first road lines standing out; the closed road line is not singled out." loading="lazy">
+      <figcaption>Where Minitaur looks, line by line. Trap and open twins look almost the same.</figcaption>
+    </figure>
+    <figure class="figure">
+      <img src="assets/roles_intern-4B.png" alt="Change in the probability of the tempting option when each kind of line is deleted, for Intern 4B. The tempting option's first road dominates; the closed road matters only when the route is listed." loading="lazy">
+      <figcaption>What moves Intern 4B. Its first roads drive the choice. The closed road counts only once the route is listed, and then in the right direction in both twins.</figcaption>
+    </figure>
+  </div>
+  <figure class="figure narrow">
+    <img src="assets/fig_link.png" alt="Probe accuracy by depth at layer 20. Trap versus side is near chance for all four models. Trap versus patient is above chance only at depth 1." loading="lazy">
+    <figcaption>The link probe. Every variant has one closed road; only its place changes. Whether it lies on the tempting route or beside it is not readable in any model.</figcaption>
+  </figure>
+</section>
+
+<section class="stop" id="live">
+  <h2>Live play</h2>
+  <p>Now the model drives the whole route itself, one road at a time, with its route so far in view. Even when the cheap route is the right one, models rarely reach the goal beyond two steps. They take the cheapest road on offer, which is usually the road back.</p>
+  <figure class="diagram shuttle">
+    <svg viewBox="0 0 640 120" role="img" aria-label="A car moving back and forth between two places instead of continuing to the goal">
+      <line x1="60" y1="60" x2="580" y2="60" class="road patient-road faint"/>
+      <circle cx="60" cy="60" r="9" class="place start"/>
+      <circle cx="200" cy="60" r="8" class="place"/>
+      <circle cx="340" cy="60" r="8" class="place"/>
+      <circle cx="580" cy="60" r="11" class="place goal"/>
+      <text x="580" y="100" text-anchor="middle" class="svg-small">goal</text>
+      <circle id="car" cx="200" cy="60" r="7" class="car"/>
+    </svg>
+  </figure>
+  <figure class="figure">
+    <img src="assets/fig_episodes.png" alt="Share of runs reaching the goal by depth, open and trap twins, for five models; most fall to near zero by depth 2 to 4. A bar chart shows the share of steps taking the cheapest road: Minitaur 0.95, Intern 4B 0.80, Intern 2B 0.74, Intern 0.8B 0.66, Laya 0.47." loading="lazy">
+    <figcaption>Goal reached by depth (20 runs per point) and the share of steps that take the cheapest road.</figcaption>
+  </figure>
+</section>
+
+<section class="stop" id="rigour">
+  <h2>How we keep it honest</h2>
+  <dl class="checks">
+    <dt>Certified twins</dt><dd>A program checks every pair: one best move, one changed fact, a flipped answer, and a decoy edit that must change nothing.</dd>
+    <dt>Pipeline checks</dt><dd>Each model passes easy items through the same pipeline first, so a failure is the model's, not ours.</dd>
+    <dt>Length and numbers</dt><dd>Padding every prompt to the same length, and comparing within one gap between totals, separates depth from prompt length and from number comparison.</dd>
+    <dt>Shortcut-free probes</dt><dd>The link probe removes a shortcut that an ordinary twin probe allows.</dd>
+    <dt>Real nulls</dt><dd>Shuffled labels for probes, and ten random directions for steering.</dd>
+    <dt>Preregistered</dt><dd>Six claims with pass rules were fixed in writing before the fresh-seed runs. The results on this page come from development seeds; the confirmatory runs are in progress.</dd>
+  </dl>
+</section>
+
+<section class="stop takeaway" id="takeaway">
+  <h2>What it means for agents</h2>
+  <p class="big">A fast decision model uses a consequence written next to an option. It does not work one out from the rest of the input, even one link away.</p>
+  <p>If an agent relies on one, compute the look-ahead in code and write the result into the option text.</p>
+</section>
+
+</main>
+
+<footer class="footer">
+  <p>Anonymous submission. Paper, code and data will be released with the paper.</p>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
